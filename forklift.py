@@ -1,16 +1,22 @@
 """Reusable Pybricks forklift control. Confirmed attachment port: C.
 
 Importing this file does not initialize hardware or move the forklift.
-Calibrate direction/travel before use; no automatic hard-stop homing.
+Calibrated travel: +639 motor degrees on Port C; no automatic homing.
 """
 from pybricks.parameters import Direction, Port, Stop
 from pybricks.pupdevices import Motor
 from pybricks.tools import StopWatch, wait
 
 
+# Measured by the team using the clockwise-positive calibration program.
+UP_DIRECTION = 1
+RAISED_DEGREES = 639
+
+
 class Forklift:
-    def __init__(self, up_direction, raised_degrees, motor=None,
-                 speed=100, timeout_ms=5000):
+    def __init__(self, up_direction=UP_DIRECTION,
+                 raised_degrees=RAISED_DEGREES, motor=None,
+                 speed=100, timeout_ms=10000):
         # Degrees refer to the motor shaft, not lift height in millimeters.
         if up_direction not in (-1, 1):
             raise ValueError("Set up_direction to +1 or -1 after testing")
@@ -65,6 +71,12 @@ class Forklift:
             self.motor.brake()
             self._zeroed = False
             raise
+
+    def set_height(self, percent):
+        """Set height from 0 (bottom) to 100 (calibrated top)."""
+        if not isinstance(percent, (int, float)) or not 0 <= percent <= 100:
+            raise ValueError("Height must be between 0 and 100 percent")
+        self.move_to(self.raised_degrees * percent / 100)
 
     def raise_forklift(self):
         self.move_to(self.raised_degrees)
