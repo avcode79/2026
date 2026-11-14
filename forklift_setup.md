@@ -1,50 +1,43 @@
-# Reusable forklift module
+# Calibrated forklift: Port C
 
-Port C moved the forklift in the button test. The upward sign and complete travel are not yet confirmed: the response to the direction test did not specify whether the first movement went up or down.
+Team-measured settings are saved in `forklift.py`:
 
-`forklift.py` defines `Forklift`. Importing it does not create motors or move anything. It uses timed monitoring of position moves and holds at the completed position. No current mission script has been changed to use it yet.
+- `UP_DIRECTION = 1`: clockwise-positive motor rotation raises the lift.
+- `RAISED_DEGREES = 639`: motor-shaft travel from the recorded bottom to the desired top, not millimeters.
+- Default speed: 100 motor degrees/second.
+- Default timeout: 10 seconds. The previous 5-second limit was too short for a full 639-degree move at 100 degrees/second; nominal travel alone takes 6.39 seconds, before acceleration and settling.
 
-## Calibrate first
+## Use in a future run
 
-- The test used CLOCKWISE as positive. If the FIRST movement raised the forklift, use `UP_DIRECTION = 1`. If it lowered it, use `-1`.
-- Measure motor-shaft rotation from the repeatable lowered position to your desired raised position. Use the absolute measured difference as `RAISED_DEGREES`. The timed identification test did not establish full travel. These are motor degrees, not millimeters; include the effect of the actual gears by measuring the motor rotation.
-- Leave clearance before the mechanical end stops. Do not guess full travel from the small jog.
-- At 100 degrees/second, a 5000 ms timeout may be too short for long travel. Choose a timeout above the measured normal duration, with allowance for acceleration.
-
-## Future run integration
-
-Create/import `forklift.py` in the same Pybricks project as the run. This example deliberately requires calibration values to be filled in:
+Import `forklift.py` into the same Pybricks project as the run. Place the forklift at the SAME physical bottom position used during calibration before starting.
 
 ```python
 from forklift import Forklift
 
-UP_DIRECTION = None    # Replace with +1 or -1 after checking the first jog.
-RAISED_DEGREES = None  # Replace with measured motor-shaft travel.
+lift = Forklift()  # Uses calibrated Port C defaults.
+lift.zero_at_bottom()  # Records zero; does NOT move or find the bottom.
 
-lift = Forklift(UP_DIRECTION, RAISED_DEGREES)
-# Before starting: place the forklift at the agreed LOWERED position.
-lift.zero_at_bottom()  # Defines zero only; does not move or find the bottom.
-
-# Insert these calls at the desired places in a future run:
-lift.raise_forklift()
-# ...drive, deliver, or perform another task...
-lift.lower_forklift()
+lift.set_height(50)    # Halfway: 319.5 motor degrees above bottom.
+# Perform a task here.
+lift.set_height(0)     # Return to bottom.
 ```
 
-If the run already creates `left_attachment = Motor(Port.C, Direction.CLOCKWISE)`, reuse it rather than initializing Port C twice:
+`set_height(100)` targets the calibrated top. Values must be from 0 to 100. `raise_forklift()` and `lower_forklift()` remain available for full up/down. All movements wait for completion and actively hold afterward. Repeated calls target the same position rather than adding travel. Percentages represent a fraction of calibrated motor travel; actual vertical height depends on the linkage.
+
+If a run already creates `left_attachment = Motor(Port.C, Direction.CLOCKWISE)`, reuse it:
 
 ```python
-lift = Forklift(UP_DIRECTION, RAISED_DEGREES, motor=left_attachment)
+lift = Forklift(motor=left_attachment)
 ```
 
-The supplied motor must use the same direction/gearing convention used for calibration. Initialize and zero once before the combined run, not between missions. Do not zero while the lift is raised. Do not have another part of the program command the same motor at the same time.
+Do not create two motor objects for C or command it from two parts of the run simultaneously. The existing motor must have the same direction and gearing convention used for calibration. Initialize and zero once at the bottom before a combined run, not between missions. Importing the module alone does not create hardware or move anything.
 
-`raise_forklift()` and `lower_forklift()` wait for completion. Repeating either call targets the same absolute position; it does not add another full stroke. `move_to(value)` supports intermediate positions between 0 and RAISED_DEGREES. For example, `move_to(RAISED_DEGREES / 2)` targets half the calibrated motor travel.
+## Stopping and reference position
 
-After a stall or timeout, the function brakes, invalidates its reference, and raises an error so the run stops. Check the mechanism and establish the lowered reference again before retrying. Passive braking does not guarantee a loaded lift stays up. Successful movement uses active holding while the program is running; ending/stopping the program can release it.
+On a stall or timeout, the module passively brakes, invalidates its reference, and raises an error. Check the mechanism and reestablish the physical bottom before zeroing again. A passive brake may not hold a loaded lift against gravity. Successful moves use active holding while the program runs; ending/stopping the program can release it. Existing cleanup functions that call `left_attachment.stop()` also release holding.
 
-This is not an automatic homing module: a suitable bottom hard stop has not been confirmed. Existing mission cleanup functions that call `left_attachment.stop()` release active holding; account for that when integrating.
+There is no automatic bottom detection or hard-stop homing. If the lift was moved or the mechanism changed, reestablish the bottom reference or recalibrate as appropriate.
 
-Software checks cover both direction signs, absolute raise/lower targets, calibration guards, travel limits, repeated raises, and stall/timeout cleanup. The module has not been tested on the physical robot.
+The mission 1 and combined mission scripts have not been changed to operate the forklift yet. This module is ready for future integration. Local software checks cover calibrated defaults, percentages, direction signs, repeated targets, range guards, timeout/stall handling, and cleanup. The measured endpoints come from the user's calibration; full automated cycles still need field testing.
 
 Reference: [Pybricks motor API](https://docs.pybricks.com/en/latest/pupdevices/motor.html).
