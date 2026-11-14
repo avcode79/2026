@@ -14,7 +14,7 @@ from pybricks.tools import StopWatch, wait
 ROUTE = [
     ("straight", -150),  # Reverse clear of mission 1.
     ("turn", -90),       # Left 90 degrees.
-    ("straight", 600),   # Forward 600 mm.
+    ("straight", 590),   # Latest supplied mission 1 program uses 590 mm.
     ("turn", 90),        # Right 90 degrees.
     ("straight", 250),   # Forward 250 mm.
     ("turn", 45),        # Right 45 degrees; bump straight from here.
