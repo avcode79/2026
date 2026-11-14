@@ -30,6 +30,7 @@ ROUTE = [
     ("turn", 90),
     ("straight", 250),
     ("turn", 45),
+    ("straight", 150),
 ]
 ENABLE_BUMP = True  # False = stop after the final 45-degree turn.
 BUMP_SPEED = 200    # mm/s; increase in small steps after checking alignment.
