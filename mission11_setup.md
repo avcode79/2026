@@ -1,10 +1,24 @@
+# Ready-to-copy trial programs
+
+- [mission1_only.py](mission1_only.py): start at the normal mission 1 launch pose; beep, drive forward 700 mm, and brake. No return or navigation to mission 11.
+- [mission1_and_11.py](mission1_and_11.py): the same mission 1, followed by reverse 150, left 90°, forward 590, right 90°, forward 250, right 45°, then the bounded bump and 60 mm retreat. This single file needs no other team files imported into Pybricks.
+- [mission11.py](mission11.py): reusable mission 11 routine and standalone test from the END of mission 1, also updated to 590 mm.
+
+Import or paste ONE standalone program into Pybricks. Both start immediately when Run is pressed. The combined program defaults to bump enabled; set `ENABLE_BUMP = False` to check its route first. It finishes near mission 11, not at home.
+
+Mission 1 is inferred to finish after the first 700 mm forward move; the reverse and following turns are treated as navigation. This matches the user's earlier M01-to-M11 route. The pasted comment "m6 drone" was corrected to mission 1 based on the user's request. The latest 590 mm segment supersedes the earlier 600 mm instruction.
+
+Cleanup removes the unused color selector, attachment-motor initialization, and unused helpers. Neither new program requires the color sensor or attachment motors to be connected. The supplied code did not command the lift; these scripts do not move it. Mission 1 keeps DriveBase's initialization defaults: the supplied program's custom settings helper was never called. Mission 11 changes the driving settings only after mission 1 ends. Starting position, actual forklift clearance, final bump gap, and scoring still need field verification.
+
+Software simulation verified that the mission-only file stops after 700 mm and that the combined file executes the exact route once, with no repeated reverse/turns, followed by the bounded bump and retreat. Route-only mode and obstruction/time-limit exits were also checked. No physical robot test has been performed.
+
 # Mission 1 → mission 11: first field trial
 
 This replaces the earlier mission 6 plan. Start at the exact position and orientation where mission 1 finishes. The supplied route is entered in `mission11.py`:
 
 1. Reverse 150 mm.
 2. Turn left 90°.
-3. Forward 600 mm.
+3. Forward 590 mm (latest supplied program).
 4. Turn right 90°.
 5. Forward 250 mm.
 6. Turn right 45°.
@@ -39,7 +53,7 @@ def combined_run():
     mission11_after_mission1(drive_base)
 ```
 
-The entry point is now `mission11_after_mission1`; update any old `mission11_after_mission6` imports/calls. The working mission 1 code has not been provided, so this is an integration example, not a replacement for that code.
+The entry point is now `mission11_after_mission1`; update any old `mission11_after_mission6` imports/calls. The supplied mission 1 code is now cleaned up in `mission1_only.py`; `mission1_and_11.py` contains both missions as one standalone program.
 
 Alternatively paste the portion ABOVE the standalone-practice section into the team program before its run functions and final `main()` call. Call `mission11_after_mission1(drive_base)` immediately after mission 1. Do not reinitialize motors or call another `start_run()` between missions. The function brakes on exit and restores incoming drive settings.
 
